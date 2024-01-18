@@ -10,15 +10,17 @@ class GitHookController < ApplicationController
         git_event = request.headers["X-GitHub-Event"]
         if git_event == "push"
           update_repository(message_logger)
-        elsif git_event == "pull_request_review_comment" || git_event == "pull_request_review_thread"
-          update_review_issue(message_logger, "GitHub")
+        elsif git_event == "pull_request_review_comment" ||
+              git_event == "pull_request_review_thread" ||
+              git_event == "pull_request"
+          update_review_issue(message_logger, git_event)
         end
       elsif request.headers["X-Gitlab-Event"].present?
         git_event = request.headers["X-Gitlab-Event"]
         if git_event == "Push Hook"
           update_repository(message_logger)
         elsif git_event == "Note Hook" || git_event == "Merge Request Hook"
-          update_review_issue(message_logger, "GitLab")
+          update_review_issue(message_logger, git_event)
         end
       end
     end
@@ -59,15 +61,10 @@ class GitHookController < ApplicationController
     updater.update_repos
   end
 
-  def update_review_issue(logger, git_type)
-    if git_type == "GitHub"
-      updater = GitHook::Updater.new(JSON.parse(params[:payload] || "{}"), params)
-      updater.logger = logger
-      updater.update_review_issue_by_GitHub_webhook
-    elsif git_type == "GitLab"
-      updater = GitHook::Updater.new(JSON.parse("{}"), params)
-      updater.logger = logger
-      updater.update_review_issue_by_GitLab_webhook
-    end
+  def update_review_issue(logger, event_type)
+    updater = GitHook::Updater.new(parse_payload, params)
+    updater.logger = logger
+    updater.update_review_issue(event_type)
   end
+
 end
