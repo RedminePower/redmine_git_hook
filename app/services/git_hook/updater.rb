@@ -359,7 +359,7 @@ module GitHook
         children = parent.children.where('tracker_id = ? AND status_id != ? AND description like ?',
           tracker_id, closed_id, "%_blocking_discussions_resolved=%")
         close_children(reviewer, closed_id, children, "This issue is closed because the merge request has been merged.")
-      elsif action = "update"
+      elsif action == "update"
         resolved = params[:object_attributes][:blocking_discussions_resolved]
         if resolved
           children = parent.children.where('tracker_id = ? AND status_id != ? AND (description like ? OR description like ?)',
