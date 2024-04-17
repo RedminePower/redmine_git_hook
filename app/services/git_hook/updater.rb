@@ -297,9 +297,13 @@ module GitHook
         :subject => description.partition("\n")[0],
         :description => description
       )
-      child.save
-      child.reload
-      log_info("Indicated issue added. '#{child}'")
+
+      if child.save
+        child.reload
+        log_info("Indicated issue added. '#{child}'")
+      else
+        log_info("Failed to create indicated issue.")
+      end
     end
 
     def update_review_issue_by_GitHub_thread(setting)
